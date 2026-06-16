@@ -53,9 +53,10 @@ body{background:var(--cream);font-family:'Noto Sans KR',sans-serif;color:var(--i
   position:sticky;top:0;z-index:200;
   background:rgba(253,249,246,.96);backdrop-filter:blur(14px);
   border-bottom:1px solid var(--border);
+  height:55px;box-sizing:border-box;
 }
 .topbar-inner{
-  max-width:640px;margin:0 auto;padding:10px 18px;
+  max-width:640px;margin:0 auto;padding:0 18px;height:100%;
   display:flex;align-items:center;justify-content:space-between;gap:8px;
 }
 .me-chip{
@@ -81,7 +82,7 @@ body{background:var(--cream);font-family:'Noto Sans KR',sans-serif;color:var(--i
 .ptabs-wrap{
   background:rgba(253,249,246,.96);backdrop-filter:blur(14px);
   border-bottom:1px solid var(--border);
-  position:sticky;top:53px;z-index:190;
+  position:sticky;top:55px;z-index:190;
 }
 .ptabs{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr)}
 .ptab{
@@ -756,7 +757,7 @@ const dbRef=path=>db.ref(`${DATE_KEY}/${path}`);
 function gateCheck(){
   const inp=document.getElementById('gate-pw-input');
   if(inp.value.trim()===PW){
-    localStorage.setItem('dp_pw_ok','1');
+    localStorage.setItem('dp_pw_ok_mj','1');
     document.getElementById('pw-gate').style.display='none';
     document.getElementById('who-gate').style.display='flex';
   }else{
@@ -769,7 +770,7 @@ function gateCheck(){
 window.gateCheck=gateCheck;
 
 function gateWho(who){
-  ME=who;localStorage.setItem('dp_me',who);
+  ME=who;localStorage.setItem('dp_me_mj',who);
   document.getElementById('who-gate').style.display='none';
   document.getElementById('date-select').style.display='flex';
   document.getElementById('ds-who-name').textContent=EMOJIS[who]+' '+NAMES[who]+' 안녕!';
@@ -779,7 +780,7 @@ window.gateWho=gateWho;
 function selectDate(dk){
   if(DATE_KEY===dk&&document.getElementById('app-'+dk).style.display==='block')return;
   if(DATE_KEY&&DATE_KEY!==dk){stopListeners();document.getElementById('app-'+DATE_KEY).style.display='none';}
-  DATE_KEY=dk;localStorage.setItem('dp_date',dk);
+  DATE_KEY=dk;localStorage.setItem('dp_date_mj',dk);
   document.getElementById('date-select').style.display='none';
   const av=document.getElementById('me-av-'+dk);
   if(av){av.textContent=EMOJIS[ME];av.className='me-av '+ME;}
@@ -812,7 +813,7 @@ function doLogout(dk){
   stopListeners();
   document.getElementById('app-'+dk).style.display='none';
   document.getElementById('who-gate').style.display='flex';
-  ME=null;localStorage.removeItem('dp_me');
+  ME=null;localStorage.removeItem('dp_me_mj');
 }
 window.doLogout=doLogout;
 
@@ -905,7 +906,7 @@ function renderAlts(dk,alts){
 async function sendC(dk,plan){
   var inp=document.getElementById('ci-'+plan+'-'+dk);
   var text=inp.value.trim();if(!text)return;
-  await db.ref(dk+'/comments/'+plan).push({u:ME,t:text,ts:Date.now()});
+  await db.ref(dk+'/comments/'+plan).push({user:ME,text:text,ts:Date.now()});
   inp.value='';inp.style.height='auto';
 }
 window.sendC=sendC;
@@ -916,7 +917,7 @@ function renderComments(dk,plan,comments){
   if(!comments.length){list.innerHTML='<div class="no-c">아직 코멘트가 없어요</div>';return;}
   list.innerHTML=comments.map(function(c){
     var d=new Date(c.ts),time=d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');
-    return '<div class="c-item '+c.u+'"><div class="c-meta"><span>'+EMOJIS[c.u]+'</span><span style="font-weight:400">'+NAMES[c.u]+'</span><span>'+time+'</span></div><div class="c-text">'+esc(c.t)+'</div></div>';
+    return '<div class="c-item '+c.user+'"><div class="c-meta"><span>'+EMOJIS[c.user]+'</span><span style="font-weight:400">'+NAMES[c.user]+'</span><span>'+time+'</span></div><div class="c-text">'+esc(c.text)+'</div></div>';
   }).join('');
 }
 
@@ -926,7 +927,7 @@ window.autoH=autoH;
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
 
 (function(){
-  const pwOk=localStorage.getItem('dp_pw_ok'),savedMe=localStorage.getItem('dp_me');
+  const pwOk=localStorage.getItem('dp_pw_ok_mj'),savedMe=localStorage.getItem('dp_me_mj');
   if(pwOk&&savedMe){
     ME=savedMe;
     document.getElementById('pw-gate').style.display='none';
