@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>우리 데이트 플랜</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Noto+Sans+KR:wght@300;400;500&display=swap');
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --ink:#1c1612;--dust:#9a8880;--blush:#e8c4b4;--petal:#faf0eb;
+  --cream:#fdf9f6;--rose:#c47a5e;--deep:#8b4a35;--white:#fff;
+  --border:rgba(196,122,94,0.15);
+}
+html{scroll-behavior:smooth}
+body{background:var(--cream);font-family:'Noto Sans KR',sans-serif;color:var(--ink);min-height:100vh}
+
+#login{
+  position:fixed;inset:0;z-index:9999;background:var(--cream);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px 24px;
+}
+.login-title{
+  font-family:'Cormorant Garamond',serif;font-size:46px;font-weight:300;
+  text-align:center;line-height:1.08;margin-bottom:6px;
+}
+.login-title em{font-style:italic;color:var(--rose)}
+.login-sub{font-size:13px;color:var(--dust);font-weight:300;margin-bottom:44px;text-align:center;margin-top:10px}
+.who-list{display:flex;flex-direction:column;gap:12px;width:100%;max-width:300px}
+.who-btn{
+  padding:17px 20px;border:1.5px solid var(--border);border-radius:16px;
+  background:var(--white);cursor:pointer;font-family:'Noto Sans KR',sans-serif;
+  display:flex;align-items:center;gap:14px;
+  transition:border-color .2s,box-shadow .2s;text-align:left;
+}
+.who-btn:hover{border-color:var(--rose);box-shadow:0 6px 20px rgba(196,122,94,0.1)}
+.who-av{
+  width:40px;height:40px;border-radius:50%;font-size:18px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.who-btn.hy .who-av{background:#edf2f9}
+.who-btn.ky .who-av{background:#fceaea}
+.who-info .wname{font-size:15px;font-weight:500;display:block;margin-bottom:2px}
+.who-info .wrole{font-size:12px;color:var(--dust);font-weight:300}
+
+#app{display:none}
+
+.topbar{
+  position:sticky;top:0;z-index:200;
+  background:rgba(253,249,246,.96);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+}
+.topbar-inner{
+  max-width:640px;margin:0 auto;padding:10px 18px;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+}
+.me-chip{
+  display:flex;align-items:center;gap:7px;
+  background:var(--petal);border-radius:999px;padding:5px 12px 5px 7px;
+}
+.me-av{width:24px;height:24px;border-radius:50%;font-size:12px;display:flex;align-items:center;justify-content:center}
+.me-av.hy{background:#edf2f9}
+.me-av.ky{background:#fceaea}
+.me-name{font-size:12px;font-weight:400;color:var(--ink)}
+.bar-title{
+  font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:300;
+  color:var(--ink);flex:1;text-align:center;letter-spacing:.3px;
+}
+.sw-btn{
+  font-size:11px;color:var(--dust);background:none;
+  border:1px solid var(--border);border-radius:999px;
+  padding:5px 12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;
+  transition:all .2s;white-space:nowrap;
+}
+.sw-btn:hover{border-color:var(--rose);color:var(--rose)}
+
+.ptabs-wrap{
+  background:rgba(253,249,246,.96);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  position:sticky;top:53px;z-index:190;
+}
+.ptabs{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr)}
+.ptab{
+  padding:13px 6px 11px;border:none;background:transparent;cursor:pointer;
+  font-family:'Noto Sans KR',sans-serif;color:var(--dust);
+  border-bottom:2px solid transparent;transition:all .2s;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+}
+.ptab .lbl{font-size:10px;letter-spacing:1.8px;text-transform:uppercase;font-weight:300}
+.ptab .nm{font-size:13px;font-weight:400}
+.ptab.on{color:var(--rose);border-bottom-color:var(--rose)}
+.ptab:hover:not(.on){color:var(--ink)}
+
+.pick-banner{
+  max-width:640px;margin:0 auto;
+  padding:8px 18px;background:var(--petal);
+  border-bottom:1px solid var(--border);
+  font-size:12px;color:var(--deep);
+  display:none;align-items:center;gap:6px;flex-wrap:wrap;
+}
+.pick-banner.show{display:flex}
+
+.content{max-width:640px;margin:0 auto;padding:0 18px 100px}
+.panel{display:none;animation:up .25s ease both}
+.panel.on{display:block}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.ph{padding:28px 0 22px;border-bottom:1px solid var(--border);margin-bottom:26px}
+.ptag{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--rose);display:block;margin-bottom:8px;font-weight:400}
+.ptitle{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(26px,6vw,36px);font-weight:300;line-height:1.12;
+}
+.ptitle em{font-style:italic;color:var(--rose)}
+.pmood{margin-top:9px;font-size:12.5px;color:var(--dust);font-weight:300;line-height:1.7}
+
+.tl{display:flex;flex-direction:column}
+.stop{
+  display:grid;grid-template-columns:48px 1fr;
+  gap:0 14px;padding-bottom:20px;position:relative;
+}
+.stop:last-child{padding-bottom:0}
+.stop::before{
+  content:'';position:absolute;left:23px;top:28px;bottom:0;
+  width:1px;background:linear-gradient(to bottom,var(--blush) 60%,transparent);
+}
+.stop:last-child::before{display:none}
+.st{text-align:right;padding-top:3px}
+.st .t{
+  font-family:'Cormorant Garamond',serif;font-size:13px;
+  font-weight:400;color:var(--rose);display:block;line-height:1;
+}
+.st .dot{
+  width:7px;height:7px;border-radius:50%;background:var(--rose);
+  margin:8px 0 0 auto;position:relative;z-index:1;
+  box-shadow:0 0 0 3px var(--cream);
+}
+.sc{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:12px;padding:13px 15px;
+  transition:box-shadow .2s,border-color .2s;
+}
+.sc:hover{box-shadow:0 4px 18px rgba(196,122,94,.07);border-color:rgba(196,122,94,.22)}
+.sname{font-size:13.5px;font-weight:500;color:var(--ink);margin-bottom:3px;line-height:1.3}
+.sadr{font-size:11px;color:var(--dust);font-weight:300;margin-bottom:5px}
+.sdesc{font-size:12.5px;color:#5e5249;font-weight:300;line-height:1.72}
+.stip{
+  margin-top:8px;padding:7px 11px;background:var(--petal);
+  border-radius:7px;font-size:11.5px;color:var(--deep);line-height:1.6;
+}
+
+.map-link{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:11px;color:var(--rose);font-weight:400;
+  text-decoration:none;margin-top:6px;
+  padding:3px 9px;border:1px solid rgba(196,122,94,0.25);
+  border-radius:999px;transition:all .2s;background:var(--petal);
+}
+.map-link:hover{background:var(--rose);color:white;border-color:var(--rose)}
+.map-link svg{width:10px;height:10px;fill:currentColor;flex-shrink:0}
+
+.alts{margin-top:10px}
+.alts-lbl{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dust);display:block;margin-bottom:6px}
+.alt-list{display:flex;flex-direction:column;gap:5px}
+.alt-btn{
+  padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;
+  background:var(--cream);cursor:pointer;
+  font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:300;
+  color:var(--ink);text-align:left;transition:all .2s;
+  display:flex;flex-direction:column;gap:0;width:100%;
+}
+.alt-btn:hover{border-color:var(--rose);background:var(--white)}
+.alt-btn.sel{border-color:var(--rose);background:var(--petal);font-weight:400;color:var(--deep)}
+.alt-btn .at{line-height:1.55;flex:1}
+.alt-btn .sel-row{
+  display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap;
+}
+.tag{
+  display:inline-block;font-size:9px;letter-spacing:.8px;text-transform:uppercase;
+  border-radius:4px;padding:1px 5px;margin-left:5px;vertical-align:middle;
+  color:white;background:var(--rose);
+}
+.pick-btn.done{background:var(--rose);pointer-events:auto}
+.pick-btn.done:hover{background:#a35f46}
+
+.pick-wrap{
+  margin-top:28px;padding:20px 18px;
+  background:var(--white);border:1px solid var(--border);
+  border-radius:16px;text-align:center;
+}
+.pick-msg{font-size:12.5px;color:var(--dust);font-weight:300;margin-bottom:14px;line-height:1.6}
+.pick-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:13px 34px;background:var(--ink);color:var(--cream);
+  border:none;border-radius:999px;
+  font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:400;
+  cursor:pointer;transition:background .22s,transform .15s;
+}
+.pick-btn:hover{background:var(--rose);transform:scale(1.03)}
+.pick-btn:active{transform:scale(.98)}
+.pick-other{margin-top:10px;font-size:12px;color:var(--rose);font-weight:400;min-height:18px}
+
+.divider{display:flex;align-items:center;gap:12px;margin:26px 0 16px}
+.divider span{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dust);white-space:nowrap}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(196,122,94,.15)}
+
+.clist{display:flex;flex-direction:column;gap:9px;margin-bottom:12px}
+.c-item{
+  padding:10px 13px;border-radius:11px;
+  font-size:13px;line-height:1.6;font-weight:300;max-width:84%;
+}
+.c-item.hy{background:#eef3f9;border-radius:3px 11px 11px 11px;align-self:flex-start}
+.c-item.ky{background:#fceaea;border-radius:11px 3px 11px 11px;align-self:flex-end;text-align:right}
+.c-meta{font-size:10px;color:var(--dust);margin-bottom:3px;display:flex;align-items:center;gap:5px}
+.c-item.ky .c-meta{justify-content:flex-end}
+.c-text{color:var(--ink)}
+.no-c{text-align:center;padding:18px;font-size:12.5px;color:var(--dust);font-weight:300}
+.cinput-wrap{display:flex;gap:8px;align-items:flex-end}
+.cinput{
+  flex:1;padding:10px 14px;
+  border:1.5px solid var(--border);border-radius:11px;
+  background:var(--white);
+  font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:300;
+  color:var(--ink);resize:none;min-height:42px;max-height:100px;
+  outline:none;transition:border-color .2s;
+}
+.cinput::placeholder{color:#c4b0a8}
+.cinput:focus{border-color:var(--rose)}
+.csend{
+  width:38px;height:38px;border-radius:50%;background:var(--ink);
+  border:none;cursor:pointer;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;transition:background .2s;
+}
+.csend:hover{background:var(--rose)}
+.csend svg{width:14px;height:14px;fill:white}
+
+.toast{
+  position:fixed;bottom:26px;left:50%;
+  transform:translateX(-50%) translateY(70px);
+  background:var(--ink);color:var(--cream);
+  padding:11px 22px;border-radius:999px;
+  font-size:13px;pointer-events:none;white-space:nowrap;
+  transition:transform .34s cubic-bezier(.34,1.56,.64,1);z-index:999;
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+.who-pip{font-size:11px;padding:2px 8px;border-radius:999px;font-weight:400;display:inline-block;margin-top:4px}
+.who-pip.hy{background:#edf2f9;color:#3a6090}
+.who-pip.ky{background:#fceaea;color:#903a3a}
+
+.pw-wrap{
+  display:flex;flex-direction:column;gap:10px;
+  width:100%;max-width:280px;margin:0 auto;
+}
+.pw-input{
+  width:100%;padding:14px 16px;
+  border:1.5px solid var(--border);border-radius:12px;
+  background:var(--white);font-family:'Noto Sans KR',sans-serif;
+  font-size:22px;letter-spacing:6px;text-align:center;
+  outline:none;transition:border-color .2s;color:var(--ink);
+}
+.pw-input:focus{border-color:var(--rose)}
+.pw-input::placeholder{letter-spacing:2px;font-size:14px;color:#c4b0a8}
+.pw-btn{
+  width:100%;padding:14px;background:var(--ink);color:var(--cream);
+  border:none;border-radius:12px;cursor:pointer;
+  font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:400;
+  transition:background .2s;
+}
+.pw-btn:hover{background:var(--rose)}
+.pw-btn:active{background:var(--rose)}
+.pw-err{
+  margin-top:8px;font-size:12px;color:var(--rose);
+  font-weight:400;min-height:18px;text-align:center;
+}
+
+@media(max-width:480px){
+  .content{padding:0 14px 100px}
+  .stop{grid-template-columns:44px 1fr;gap:0 10px}
+  .sc{padding:11px 13px}
+  .ptab .nm{font-size:12px}
+  .pick-btn{padding:12px 26px;font-size:13px}
+  .bar-title{font-size:16px}
+}
+
+#date-select{position:fixed;inset:0;z-index:9998;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px}
+#pw-gate{position:fixed;inset:0;z-index:9999;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px}
+#who-gate{display:none;position:fixed;inset:0;z-index:9997;background:var(--cream);flex-direction:column;align-items:center;justify-content:center;padding:32px 24px}
+.date-list{display:flex;flex-direction:column;gap:12px;width:100%;max-width:300px;margin-top:32px}
+.date-btn{padding:18px 20px;border:1.5px solid var(--border);border-radius:16px;background:var(--white);cursor:pointer;font-family:'Noto Sans KR',sans-serif;display:flex;align-items:center;gap:14px;transition:border-color .2s,box-shadow .2s;text-align:left}
+.date-btn:hover{border-color:var(--rose);box-shadow:0 6px 20px rgba(196,122,94,0.1)}
+.date-icon{width:42px;height:42px;border-radius:12px;background:var(--petal);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.date-info .ddate{font-size:15px;font-weight:500;display:block;margin-bottom:2px}
+.date-info .ddesc{font-size:12px;color:var(--dust);font-weight:300}
+#login-jun21{position:fixed;inset:0;z-index:9999;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px}
+#app-jun21{display:none}
+</style>
+</head>
+<body>
+
+<!-- ══ PW GATE ══ -->
+<div id="pw-gate">
+  <div style="font-size:28px;letter-spacing:6px;margin-bottom:20px;opacity:.7">🌮 🍸 🌮</div>
+  <h1 class="login-title">우리<br><em>데이트 플랜</em></h1>
+  <p class="login-sub" style="margin-bottom:24px">비밀번호를 입력해줘</p>
+  <div class="pw-wrap">
+    <input type="password" id="gate-pw-input" class="pw-input" placeholder="····"
+      onkeydown="if(event.key==='Enter') gateCheck()" maxlength="10" />
+    <button class="pw-btn" onclick="gateCheck()">확인</button>
+  </div>
+  <p class="pw-err" id="gate-pw-err"></p>
+</div>
+
+<!-- ══ WHO GATE ══ -->
+<div id="who-gate">
+  <div style="font-size:28px;letter-spacing:6px;margin-bottom:20px;opacity:.7">🌮 🍸 🌮</div>
+  <h1 class="login-title">우리<br><em>데이트 플랜</em></h1>
+  <p class="login-sub">나는 누구야?</p>
+  <div class="who-list">
+    <button class="who-btn hy" onclick="gateWho('hy')">
+      <div class="who-av">🧑</div>
+      <div class="who-info"><span class="wname">서현일</span><span class="wrole">코스 짠 사람</span></div>
+    </button>
+    <button class="who-btn ky" onclick="gateWho('ky')">
+      <div class="who-av">👩</div>
+      <div class="who-info"><span class="wname">손미지</span><span class="wrole">초대받은 사람</span></div>
+    </button>
+  </div>
+</div>
+
+<!-- ══ DATE SELECT ══ -->
+<div id="date-select" style="display:none">
+  <div style="font-size:28px;letter-spacing:6px;margin-bottom:20px;opacity:.7">🌮 🍸 🌮</div>
+  <h1 class="login-title">우리<br><em>데이트 플랜</em></h1>
+  <p class="login-sub" id="ds-who-name" style="margin-bottom:8px"></p>
+  <div class="date-list">
+    <button class="date-btn" onclick="selectDate('jun21')">
+      <div class="date-icon">🎬</div>
+      <div class="date-info"><span class="ddate">6월 21일 일요일</span><span class="ddesc">강남역 영화 + 맛집 데이트</span></div>
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- 6월 21일 — 강남역 영화 데이트 -->
+<!-- ══════════════════════════════════════════ -->
+<div id="login-jun21" style="display:none"></div>
+
+<div id="app-jun21" style="display:none">
+
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="me-chip">
+        <div class="me-av" id="me-av-jun21"></div>
+        <span class="me-name" id="me-name-jun21"></span>
+      </div>
+      <div class="bar-title">🎬 6월 21일 · 강남역</div>
+      <button class="sw-btn" onclick="doLogout('jun21')">사람 바꾸기</button>
+    </div>
+  </div>
+
+  <div class="ptabs-wrap">
+    <div class="ptabs">
+      <button class="ptab on" onclick="swP('jun21','a',this)">
+        <span class="lbl">Plan A</span><span class="nm">강남·도심</span>
+      </button>
+      <button class="ptab" onclick="swP('jun21','b',this)">
+        <span class="lbl">Plan B</span><span class="nm">액티비티</span>
+      </button>
+      <button class="ptab" onclick="swP('jun21','c',this)">
+        <span class="lbl">Plan C</span><span class="nm">드라이브</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="pick-banner" id="banner-jun21">
+    <span id="banner-txt-jun21"></span>
+  </div>
+
+  <div class="content">
+    <!-- ══ PLAN A ══ -->
+    <div class="panel on" id="pa-jun21">
+      <div class="ph">
+        <span class="ptag">Plan A · 추천</span>
+        <h2 class="ptitle">강남 도심<br><em>영화 + 맛집 + 카페</em></h2>
+        <p class="pmood">강남역에서 만나 점심 → CGV 영화 → 베이커리 카페. 도심에서 다 즐기는 무난하고 편한 코스.</p>
+      </div>
+      <div class="tl">
+        <div class="stop">
+          <div class="st"><span class="t">12:00</span><div class="dot"></div></div>
+          <div class="sc">
+            <div class="sname">🤝 강남역에서 만남</div>
+            <div class="sadr">강남역 11번 출구 or 신분당선 강남역</div>
+            <div class="sdesc">일요일 점심, 강남역에서 만나서 가볍게 인사. 영화 시간 맞춰서 이동.</div>
+            <div class="stip">영화 예매 시간 확인! 12:30~13:00 상영 기준</div>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="st"><span class="t">12:30</span><div class="dot"></div></div>
+          <div class="sc">
+            <div class="sname">🍽️ 가볍게 점심 (영화 전)</div>
+            <div class="sadr">강남역 인근</div>
+            <div class="sdesc">영화 전에 가볍게 한 끼. 라멘이나 오므라이스로 부담 없이.</div>
+            <div class="alts">
+              <span class="alts-lbl">골라줘</span>
+              <div class="alt-list" id="alt-a-lunch-jun21">
+                <button class="alt-btn" data-k="a-lunch" data-v="muwol" onclick="selAlt(this)">
+                  <span class="at">무월식탁 (한식) — 세련된 한식 반상. 한방 바베큐 보쌈·간장새우 덮밥. 편안한 분위기 <span class="tag">추천</span> <a class="map-link" href="https://map.naver.com/p/search/%EB%AC%B4%EC%9B%94%EC%8B%9D%ED%83%81%20%EA%B0%95%EB%82%A8%EC%97%AD" target="_blank" style="display:inline-flex;vertical-align:middle"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버</a></span>
+                </button>
+                <button class="alt-btn" data-k="a-lunch" data-v="oreno" onclick="selAlt(this)">
+                  <span class="at">오레노라멘 (일식) — 토리빠이탄 라멘. CGV 뒷편. 리필 가능, 깔끔 <a class="map-link" href="https://map.naver.com/p/search/%EC%98%A4%EB%A0%88%EB%85%B8%EB%9D%BC%EB%A9%98%20%EA%B0%95%EB%82%A8%EC%A0%90" target="_blank" style="display:inline-flex;vertical-align:middle"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버</a></span>
+                </button>
+                <button class="alt-btn" data-k="a-lunch" data-v="euljidarak" onclick="selAlt(this)">
+                  <span class="at">을지다락 (양식) — 레트로 감성 오므라이스·파스타. 가성비 <a class="map-link" href="https://map.naver.com/p/search/%EC%9D%84%EC%A7%80%EB%8B%A4%EB%9D%BD%20%EA%B0%95%EB%82%A8%EC%97%AD" target="_blank" style="display:inline-flex;vertical-align:middle"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버</a></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="st"><span class="t">13:00</span><div class="dot"></div></div>
+          <div class="sc">
+            <div class="sname">🎬 영화 (CGV 강남)</div>
+            <div class="sadr">강남대로 438 스타플렉스 (강남역 도보 10분)</div>
+            <div class="sdesc">CGV 강남에서 영화. 6관 874석, 강남 대표 영화관. 약 2시간 관람.</div>
+            <div class="stip">로비·매점 4층. 사람 많으니 30분 전 도착 권장. ~15시 종료</div>
+            <a class="map-link" href="https://map.naver.com/p/search/%43%47%56%20%EA%B0%95%EB%82%A8" target="_blank"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버 지도</a>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="st"><span class="t">15:00</span><div class="dot"></div></div>
+          <div class="sc">
+            <div class="sname">🥐 베이커리 카페 (영화 후)</div>
+            <div class="sadr">강남역 CGV 뒷골목</div>
+            <div class="sdesc">영화 보고 나서 디저트 + 커피로 영화 얘기. 소금빵 맛집에서 여유롭게.</div>
+            <div class="alts">
+              <span class="alts-lbl">골라줘</span>
+              <div class="alt-list" id="alt-a-cafe-jun21">
+                <button class="alt-btn" data-k="a-cafe" data-v="bakerst" onclick="selAlt(this)">
+                  <span class="at">베이커스트 브라운 — CGV 뒷골목 빨간 벽돌. 소금빵·퀸아망 유명. 지하1~3층 넓음 <span class="tag">추천</span> <a class="map-link" href="https://map.naver.com/p/search/%EB%B2%A0%EC%9D%B4%EC%BB%A4%EC%8A%A4%ED%8A%B8%20%EB%B8%8C%EB%9D%BC%EC%9A%B4%20%EA%B0%95%EB%82%A8" target="_blank" style="display:inline-flex;vertical-align:middle"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버</a></span>
+                </button>
+                <button class="alt-btn" data-k="a-cafe" data-v="selected" onclick="selAlt(this)">
+                  <span class="at">셀렉티드닉스 강남역점 — 대형 카페. 사진 스팟 많고 디저트 다양 <a class="map-link" href="https://map.naver.com/p/search/%EC%85%80%EB%A0%89%ED%8B%B0%EB%93%9C%EB%8B%89%EC%8A%A4%20%EA%B0%95%EB%82%A8%EC%97%AD" target="_blank" style="display:inline-flex;vertical-align:middle"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버</a></span>
+                </button>
+                <button class="alt-btn" data-k="a-cafe" data-v="something" onclick="selAlt(this)">
+                  <span class="at">썸띵어바웃커피 — 강남역 디저트카페 ★4.1. 커피 맛집 <a class="map-link" href="https://map.naver.com/p/search/%EC%8D%B8%EB%9D%B5%EC%96%B4%EB%B0%94%EC%9B%83%EC%BB%A4%ED%94%BC%20%EA%B0%95%EB%82%A8%EC%97%AD" target="_blank" style="display:inline-flex;vertical-align:middle"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버</a></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="st"><span class="t">17:00</span><div class="dot"></div></div>
+          <div class="sc">
+            <div class="sname">🌆 마무리</div>
+            <div class="alts">
+              <span class="alts-lbl">골라줘</span>
+              <div class="alt-list" id="alt-a-end-jun21">
+                <button class="alt-btn" data-k="a-end" data-v="walk" onclick="selAlt(this)">
+                  <span class="at">강남역 거리 구경 — 일상비일상의틈 등 가볍게 둘러보기 <span class="tag">추천</span> <a class="map-link" href="https://map.naver.com/p/search/%EC%9D%BC%EC%83%81%EB%B9%84%EC%9D%BC%EC%83%81%EC%9D%98%ED%8B%88%20%EA%B0%95%EB%82%A8" target="_blank" style="display:inline-flex;vertical-align:middle"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버</a></span>
+                </button>
+                <button class="alt-btn" data-k="a-end" data-v="dinner" onclick="selAlt(this)">
+                  <span class="at">간단 저녁 한 끼 더 — 출출하면 분식이나 가벼운 식사</span>
+                </button>
+                <button class="alt-btn" data-k="a-end" data-v="home" onclick="selAlt(this)">
+                  <span class="at">기분 좋게 마무리 — 다음 약속 기약하며 👋</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pick-wrap">
+        <p class="pick-msg">이 코스 어때? 마음에 들면 눌러줘</p>
+        <button class="pick-btn" id="pk-a-jun21" onclick="pickPlan('jun21','a')"><span>Plan A 좋아!</span></button>
+        <div class="pick-other" id="po-a-jun21"></div>
+      </div>
+      <div class="divider"><span>대화</span></div>
+      <div class="clist" id="cl-a-jun21"></div>
+      <div class="cinput-wrap">
+        <textarea class="cinput" id="ci-a-jun21" placeholder="코멘트 남기기..." rows="1"
+          oninput="autoH(this)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendC('jun21','a')}"></textarea>
+        <button class="csend" onclick="sendC('jun21','a')"><svg viewBox="0 0 24 24"><path d="M2 21L23 12 2 3v7l15 2-15 2z"/></svg></button>
+      </div>
+    </div>
+
+    <!-- ══ PLAN B ══ -->
+    <div class="panel" id="pb-jun21">
+      <div class="ph">
+        <span class="ptag">Plan B</span>
+        <h2 class="ptitle">액티비티<br><em>같이 즐기기</em></h2>
+        <p class="pmood">영화 → 든든한 한식 → 방탈출·볼링 같이 즐기기. 가만히 있기보다 함께 움직이며 노는 코스.</p>
+      </div>
+      <div class="tl">
+        <div class="stop">
+          <div class="st"><span class="t">12:00</span><div class="dot"></div></div>
+          <div class="sc">
+            <div class="sname">🤝 강남역에서 만남</div>
+            <div class="sadr">강남역 11번 출구</div>
+            <div class="sdesc">일요일 점심 강남역 만남. 가만히 앉아있기보다 같이 움직이며 노는 코스.</div>
+            <div class="stip">영화·액티비티 예매 확인! 방탈출은 미리 예약 필수</div>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="st"><span class="t">12:30</span><div class="dot"></div></div>
+          <div class="sc">
+            <div class="sname">🎬 영화 (메가박스 강남)</div>
+            <div class="sadr">강남역 사거리</div>
+            <div class="sdesc">메가박스 강남에서 영화. 리클라이너관 편하게. 약 2시간 관람.</div>
+            <div class="stip">강남역 바로 앞이라 이동 편함. ~14:30 종료</div>
+            <a class="map-link" href="https://map.naver.com/p/search/%EB%A9%94%EA%B0%80%EB%B0%95%EC%8A%A4%20%EA%B0%95%EB%82%A8" target="_blank"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버 지도</a>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="st"><span class="t">14:30</span><div class="dot"></div></div>
+          <div class="sc">
+            <div class="sname">🍽️ 점심 (한식 우선)</div>
+            <div class="sadr">강남역 인근</div>
+            <div class="sdesc">영화 보고 든든하게 한 끼. 액티비티 전 에너지 충전.</div>
+            <div class="alts">
+              <span class="alts-lbl">골라줘</span>
+              <div class="alt-list" id="alt-b-meal-jun21">
+                <button class="alt-btn" data-k="b-meal" data-v="muwol" onclick="selAlt(this)">
+                  <span class="at">무월식탁 (한식) — 세련된 한식 반상. 한방 보쌈·간장새우 덮밥. 든든하게 <span class="tag">추천</span> <a class="map-link" href="https://map.naver.com/p/search/%EB%AC%B4%EC%9B%94%EC%8B%9D%ED%83%81%20%EA%B0%95%EB%82%A8%EC%97%AD" target="_blank" style="display:inline-flex;vertical-align:middle"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버</a></span>
+                </button>
+                <button class="alt-btn" data-k="b-meal" data-v="oreno" onclick="selAlt(this)">
+                  <span class="at">오레노라멘 (일식) — 토리빠이탄 라멘. 빠르고 깔끔하게 <a class="map-link" href="https://map.naver.com/p/search/%EC%98%A4%EB%A0%88%EB%85%B8%EB%9D%BC%EB%A9%98%20%EA%B0%95%EB%82%A8%EC%A0%90" target="_blank" style="display:inline-flex;vertical-align:middle"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버</a></span>
+                </button>
+                <button class="alt-btn" data-k="b-meal" data-v="euljidarak" onclick="selAlt(this)">
+                  <span class="at">을지다락 (양식) — 오므라이스·파스타. 가성비 <a class="map-link" href="https://map.naver.com/p/search/%EC%9D%84%EC%A7%80%EB%8B%A4%EB%9D%BD%20%EA%B0%95%EB%82%A8%EC%97%AD" target="_blank" style="display:inline-flex;vertical-align:middle"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버</a></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="st"><span class="t">16:00</span><div class="dot"></div></div>
+          <div class="sc">
+            <div class="sname">🎯 같이 즐기는 액티비티</div>
+            <div class="sadr">강남역 일대</div>
+            <div class="sdesc">둘이 함께 몰입하는 액티비티. 끝나고 자연스럽게 후기 토크 가능. 어색함도 풀림.</div>
+            <div class="alts">
+              <span class="alts-lbl">골라줘</span>
+              <div class="alt-list" id="alt-b-act-jun21">
+                <button class="alt-btn" data-k="b-act" data-v="escape" onclick="selAlt(this)">
+                  <span class="at">방탈출 단편선 — 탄탄한 스토리 방탈출. 추리·판타지 2개 테마. 예약 필수 <span class="tag">추천</span> <a class="map-link" href="https://map.naver.com/p/search/%EB%B0%A9%ED%83%88%EC%B6%9C%20%EB%8B%A8%ED%8E%B8%EC%84%A0%20%EA%B0%95%EB%82%A8" target="_blank" style="display:inline-flex;vertical-align:middle"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버</a></span>
+                </button>
+                <button class="alt-btn" data-k="b-act" data-v="bowling" onclick="selAlt(this)">
+                  <span class="at">템플스트라이크 — 음악 나오는 락볼링장. 신나게 1~2게임. 하이볼·스낵도 <a class="map-link" href="https://map.naver.com/p/search/%ED%85%9C%ED%94%8C%EC%8A%A4%ED%8A%B8%EB%9D%BC%EC%9D%B4%ED%81%AC%20%EA%B0%95%EB%82%A8" target="_blank" style="display:inline-flex;vertical-align:middle"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버</a></span>
+                </button>
+                <button class="alt-btn" data-k="b-act" data-v="smurf" onclick="selAlt(this)">
+                  <span class="at">스머프매직포레스트 — 미디어아트+마술+방탈출 결합 테마파크. 화려하고 사진 핫플 <a class="map-link" href="https://map.naver.com/p/search/%EC%8A%A4%EB%A8%B8%ED%94%84%EB%A7%A4%EC%A7%81%ED%8F%AC%EB%A0%88%EC%8A%A4%ED%8A%B8%20%EA%B0%95%EB%82%A8" target="_blank" style="display:inline-flex;vertical-align:middle"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버</a></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="st"><span class="t">18:00</span><div class="dot"></div></div>
+          <div class="sc">
+            <div class="sname">🌆 마무리</div>
+            <div class="alts">
+              <span class="alts-lbl">골라줘</span>
+              <div class="alt-list" id="alt-b-end-jun21">
+                <button class="alt-btn" data-k="b-end" data-v="cafe" onclick="selAlt(this)">
+                  <span class="at">카페에서 후기 토크 — 액티비티 얘기하며 커피 한 잔 <span class="tag">추천</span> <a class="map-link" href="https://map.naver.com/p/search/%EA%B0%95%EB%82%A8%EC%97%AD%20%EC%B9%B4%ED%8E%98" target="_blank" style="display:inline-flex;vertical-align:middle"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버</a></span>
+                </button>
+                <button class="alt-btn" data-k="b-end" data-v="dinner" onclick="selAlt(this)">
+                  <span class="at">저녁까지 이어가기 — 출출하면 가벼운 저녁 한 끼</span>
+                </button>
+                <button class="alt-btn" data-k="b-end" data-v="home" onclick="selAlt(this)">
+                  <span class="at">즐겁게 마무리 — 다음 약속 기약하며 👋</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pick-wrap">
+        <p class="pick-msg">이 코스 어때? 마음에 들면 눌러줘</p>
+        <button class="pick-btn" id="pk-b-jun21" onclick="pickPlan('jun21','b')"><span>Plan B 좋아!</span></button>
+        <div class="pick-other" id="po-b-jun21"></div>
+      </div>
+      <div class="divider"><span>대화</span></div>
+      <div class="clist" id="cl-b-jun21"></div>
+      <div class="cinput-wrap">
+        <textarea class="cinput" id="ci-b-jun21" placeholder="코멘트 남기기..." rows="1"
+          oninput="autoH(this)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendC('jun21','b')}"></textarea>
+        <button class="csend" onclick="sendC('jun21','b')"><svg viewBox="0 0 24 24"><path d="M2 21L23 12 2 3v7l15 2-15 2z"/></svg></button>
+      </div>
+    </div>
+
+    <!-- ══ PLAN C ══ -->
+    <div class="panel" id="pc-jun21">
+      <div class="ph">
+        <span class="ptag">Plan C</span>
+        <h2 class="ptitle">드라이브<br><em>외곽 뷰 카페</em></h2>
+        <p class="pmood">영화 → 서울 외곽 드라이브 → 강·호수뷰 대형 카페. 도심 벗어나 탁 트인 풍경 즐기는 코스.</p>
+      </div>
+      <div class="tl">
+        <div class="stop">
+          <div class="st"><span class="t">12:00</span><div class="dot"></div></div>
+          <div class="sc">
+            <div class="sname">🤝 강남역에서 만남</div>
+            <div class="sadr">강남역 11번 출구</div>
+            <div class="sdesc">일요일 점심 강남역 만남. 영화 보고 서울 외곽으로 드라이브 떠나는 코스.</div>
+            <div class="stip">영화 예매 확인! 드라이브라 차 있으면 딱</div>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="st"><span class="t">12:30</span><div class="dot"></div></div>
+          <div class="sc">
+            <div class="sname">🎬 영화 (CGV 강남)</div>
+            <div class="sadr">강남대로 438 스타플렉스</div>
+            <div class="sdesc">CGV 강남에서 영화. 약 2시간 관람 후 드라이브 출발.</div>
+            <div class="stip">4층 매표소. ~14:30 종료</div>
+            <a class="map-link" href="https://map.naver.com/p/search/%43%47%56%20%EA%B0%95%EB%82%A8" target="_blank"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버 지도</a>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="st"><span class="t">14:30</span><div class="dot"></div></div>
+          <div class="sc">
+            <div class="sname">🍽️ 가볍게 점심</div>
+            <div class="sadr">강남역 인근 or 드라이브 길</div>
+            <div class="sdesc">드라이브 전 가볍게. 외곽 카페에서 먹을 거라 부담 없이.</div>
+            <div class="alts">
+              <span class="alts-lbl">골라줘</span>
+              <div class="alt-list" id="alt-c-meal-jun21">
+                <button class="alt-btn" data-k="c-meal" data-v="muwol" onclick="selAlt(this)">
+                  <span class="at">무월식탁 (한식) — 세련된 한식 반상. 든든하게 먹고 출발 <span class="tag">추천</span> <a class="map-link" href="https://map.naver.com/p/search/%EB%AC%B4%EC%9B%94%EC%8B%9D%ED%83%81%20%EA%B0%95%EB%82%A8%EC%97%AD" target="_blank" style="display:inline-flex;vertical-align:middle"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버</a></span>
+                </button>
+                <button class="alt-btn" data-k="c-meal" data-v="oreno" onclick="selAlt(this)">
+                  <span class="at">오레노라멘 (일식) — 빠르고 깔끔한 라멘 <a class="map-link" href="https://map.naver.com/p/search/%EC%98%A4%EB%A0%88%EB%85%B8%EB%9D%BC%EB%A9%98%20%EA%B0%95%EB%82%A8%EC%A0%90" target="_blank" style="display:inline-flex;vertical-align:middle"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버</a></span>
+                </button>
+                <button class="alt-btn" data-k="c-meal" data-v="light" onclick="selAlt(this)">
+                  <span class="at">간단히 → 외곽 카페에서 브런치 — 점심 가볍게 스킵</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="st"><span class="t">15:30</span><div class="dot"></div></div>
+          <div class="sc">
+            <div class="sname">🚗 서울 외곽으로 드라이브</div>
+            <div class="sadr">강남 → 의왕 / 양평 방향</div>
+            <div class="sdesc">창문 열고 강변·호숫길 드라이브. 도심 벗어나 탁 트인 풍경으로. 방향 골라서 출발.</div>
+            <div class="stip">일요일 오후라 나갈 때 한산. 돌아올 때 정체 약간 감안</div>
+            <div class="alts">
+              <span class="alts-lbl">골라줘</span>
+              <div class="alt-list" id="alt-c-drive-jun21">
+                <button class="alt-btn" data-k="c-drive" data-v="baegun" onclick="selAlt(this)">
+                  <span class="at">의왕 백운호수 — 강남에서 차로 30~40분. 호수 순환 데크길 산책+카페 많음. 가깝고 부담 없음 <span class="tag">추천</span> <a class="map-link" href="https://map.naver.com/p/search/%EB%B0%B1%EC%9A%B4%ED%98%B8%EC%88%98%20%EC%9D%98%EC%99%95" target="_blank" style="display:inline-flex;vertical-align:middle"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버</a></span>
+                </button>
+                <button class="alt-btn" data-k="c-drive" data-v="dumulmeori" onclick="selAlt(this)">
+                  <span class="at">양평 두물머리 — 차로 1시간. 북한강·남한강 합류 명소. 물안개·일몰 예쁨 <a class="map-link" href="https://map.naver.com/p/search/%EB%91%90%EB%AC%BC%EB%A8%B8%EB%A6%AC%20%EC%96%91%ED%8F%89" target="_blank" style="display:inline-flex;vertical-align:middle"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버</a></span>
+                </button>
+                <button class="alt-btn" data-k="c-drive" data-v="paju" onclick="selAlt(this)">
+                  <span class="at">파주 헤이리 — 차로 1시간. 예술마을+갤러리+카페. 구경거리 많음 <a class="map-link" href="https://map.naver.com/p/search/%ED%97%A4%EC%9D%B4%EB%A6%AC%20%EC%98%88%EC%88%A0%EB%A7%88%EC%9D%84%20%ED%8C%8C%EC%A3%BC" target="_blank" style="display:inline-flex;vertical-align:middle"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버</a></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="st"><span class="t">16:30</span><div class="dot"></div></div>
+          <div class="sc">
+            <div class="sname">☕ 외곽 뷰 카페</div>
+            <div class="sadr">드라이브 목적지 인근</div>
+            <div class="sdesc">탁 트인 뷰의 대형 카페에서 여유롭게. 도심 카페와 다른 개방감.</div>
+            <div class="alts">
+              <span class="alts-lbl">골라줘</span>
+              <div class="alt-list" id="alt-c-cafe-jun21">
+                <button class="alt-btn" data-k="c-cafe" data-v="starbucks" onclick="selAlt(this)">
+                  <span class="at">스타벅스 더양평 DTR — 남한강뷰 국내 최대 규모. 빵 굽는 스벅. 통창 강뷰 <span class="tag">추천</span> <a class="map-link" href="https://map.naver.com/p/search/%EC%8A%A4%ED%83%80%EB%B2%85%EC%8A%A4%20%EB%8D%94%EC%96%91%ED%8F%89%44%54%52%EC%A0%90" target="_blank" style="display:inline-flex;vertical-align:middle"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버</a></span>
+                </button>
+                <button class="alt-btn" data-k="c-cafe" data-v="baegun-cafe" onclick="selAlt(this)">
+                  <span class="at">백운호수 대형 카페 — 호수뷰 카페들. 산책 후 한 잔. 위치 따라 선택 <a class="map-link" href="https://map.naver.com/p/search/%EB%B0%B1%EC%9A%B4%ED%98%B8%EC%88%98%20%EC%B9%B4%ED%8E%98" target="_blank" style="display:inline-flex;vertical-align:middle"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버</a></span>
+                </button>
+                <button class="alt-btn" data-k="c-cafe" data-v="dirtytrunk" onclick="selAlt(this)">
+                  <span class="at">더티트렁크 (파주) — 파주 대형 카페 핫플. 인더스트리얼 감성. 브런치도 <a class="map-link" href="https://map.naver.com/p/search/%EB%8D%94%ED%8B%B0%ED%8A%B8%EB%A0%81%ED%81%AC%20%ED%8C%8C%EC%A3%BC" target="_blank" style="display:inline-flex;vertical-align:middle"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버</a></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="st"><span class="t">18:30</span><div class="dot"></div></div>
+          <div class="sc">
+            <div class="sname">🌆 저녁 + 복귀</div>
+            <div class="sdesc">드라이브 길에 저녁 먹고 서울로 복귀. 노을 보며 돌아오는 길도 운치.</div>
+            <div class="alts">
+              <span class="alts-lbl">골라줘</span>
+              <div class="alt-list" id="alt-c-end-jun21">
+                <button class="alt-btn" data-k="c-end" data-v="dinner" onclick="selAlt(this)">
+                  <span class="at">근처에서 저녁 한 끼 — 드라이브 목적지 맛집에서 <span class="tag">추천</span> <a class="map-link" href="https://map.naver.com/p/search/%EC%96%91%ED%8F%89%20%EB%A7%9B%EC%A7%91" target="_blank" style="display:inline-flex;vertical-align:middle"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> 네이버</a></span>
+                </button>
+                <button class="alt-btn" data-k="c-end" data-v="sunset" onclick="selAlt(this)">
+                  <span class="at">노을 보고 천천히 복귀 — 야경 드라이브로 마무리</span>
+                </button>
+                <button class="alt-btn" data-k="c-end" data-v="home" onclick="selAlt(this)">
+                  <span class="at">기분 좋게 복귀 — 강남까지 데려다주기 👋</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pick-wrap">
+        <p class="pick-msg">이 코스 어때? 마음에 들면 눌러줘</p>
+        <button class="pick-btn" id="pk-c-jun21" onclick="pickPlan('jun21','c')"><span>Plan C 좋아!</span></button>
+        <div class="pick-other" id="po-c-jun21"></div>
+      </div>
+      <div class="divider"><span>대화</span></div>
+      <div class="clist" id="cl-c-jun21"></div>
+      <div class="cinput-wrap">
+        <textarea class="cinput" id="ci-c-jun21" placeholder="코멘트 남기기..." rows="1"
+          oninput="autoH(this)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendC('jun21','c')}"></textarea>
+        <button class="csend" onclick="sendC('jun21','c')"><svg viewBox="0 0 24 24"><path d="M2 21L23 12 2 3v7l15 2-15 2z"/></svg></button>
+      </div>
+    </div>
+
+
+  </div>
+</div>
+
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyCKnl79CgkbAlOchzZvDIFgdxHtvF-ocVE",
+  authDomain: "hyunilmiji.firebaseapp.com",
+  databaseURL: "https://hyunilmiji-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "hyunilmiji",
+  storageBucket: "hyunilmiji.firebasestorage.app",
+  messagingSenderId: "638908259841",
+  appId: "1:638908259841:web:ac3995099a5de5ca1dea00"
+});
+const db = firebase.database();
+const NAMES={hy:'서현일',ky:'손미지'};
+const EMOJIS={hy:'🧑',ky:'👩'};
+const PLAN_NAMES_MAP={
+  jun21:{a:'Plan A · 강남 도심',b:'Plan B · 액티비티',c:'Plan C · 드라이브'}
+};
+const PW='0104';
+let ME=null,DATE_KEY=null,listeners=[];
+const dbRef=path=>db.ref(`${DATE_KEY}/${path}`);
+
+function gateCheck(){
+  const inp=document.getElementById('gate-pw-input');
+  if(inp.value.trim()===PW){
+    localStorage.setItem('dp_pw_ok','1');
+    document.getElementById('pw-gate').style.display='none';
+    document.getElementById('who-gate').style.display='flex';
+  }else{
+    const err=document.getElementById('gate-pw-err');
+    err.textContent='비밀번호가 틀렸어 🙅';
+    inp.value='';
+    setTimeout(()=>{err.textContent='';},2000);
+  }
+}
+window.gateCheck=gateCheck;
+
+function gateWho(who){
+  ME=who;localStorage.setItem('dp_me',who);
+  document.getElementById('who-gate').style.display='none';
+  document.getElementById('date-select').style.display='flex';
+  document.getElementById('ds-who-name').textContent=EMOJIS[who]+' '+NAMES[who]+' 안녕!';
+}
+window.gateWho=gateWho;
+
+function selectDate(dk){
+  if(DATE_KEY===dk&&document.getElementById('app-'+dk).style.display==='block')return;
+  if(DATE_KEY&&DATE_KEY!==dk){stopListeners();document.getElementById('app-'+DATE_KEY).style.display='none';}
+  DATE_KEY=dk;localStorage.setItem('dp_date',dk);
+  document.getElementById('date-select').style.display='none';
+  const av=document.getElementById('me-av-'+dk);
+  if(av){av.textContent=EMOJIS[ME];av.className='me-av '+ME;}
+  const nm=document.getElementById('me-name-'+dk);
+  if(nm) nm.textContent=NAMES[ME];
+  const appEl=document.getElementById('app-'+dk);
+  if(appEl&&!appEl.dataset.backAdded){
+    const inner=appEl.querySelector('.topbar-inner');
+    if(inner){
+      const btn=document.createElement('button');
+      btn.className='sw-btn';btn.textContent='날짜 변경';
+      btn.onclick=()=>changeDateScreen();
+      inner.insertBefore(btn,inner.firstChild);
+    }
+    appEl.dataset.backAdded='1';
+  }
+  document.getElementById('app-'+dk).style.display='block';
+  startListeners();
+}
+window.selectDate=selectDate;
+
+function changeDateScreen(){
+  stopListeners();
+  document.getElementById('app-'+DATE_KEY).style.display='none';
+  document.getElementById('date-select').style.display='flex';
+}
+window.changeDateScreen=changeDateScreen;
+
+function doLogout(dk){
+  stopListeners();
+  document.getElementById('app-'+dk).style.display='none';
+  document.getElementById('who-gate').style.display='flex';
+  ME=null;localStorage.removeItem('dp_me');
+}
+window.doLogout=doLogout;
+
+function stopListeners(){listeners.forEach(({r,fn})=>r.off('value',fn));listeners=[];}
+function startListeners(){
+  stopListeners();const dk=DATE_KEY;
+  const pr=dbRef('picks'),pf=snap=>renderPicks(dk,snap.val()||{});
+  pr.on('value',pf);listeners.push({r:pr,fn:pf});
+  const ar=dbRef('alts'),af=snap=>renderAlts(dk,snap.val()||{});
+  ar.on('value',af);listeners.push({r:ar,fn:af});
+  ['a','b','c','d'].forEach(function(plan){
+    var cr=db.ref(dk+'/comments/'+plan),cf=function(snap){
+      var raw=snap.val();
+      var cmts=raw?Object.values(raw).sort(function(x,y){return x.ts-y.ts;}):[];
+      renderComments(dk,plan,cmts);
+    };
+    cr.on('value',cf);listeners.push({r:cr,fn:cf});
+  });
+}
+
+function swP(dk,id,el){
+  const appEl=document.getElementById('app-'+dk);
+  appEl.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  appEl.querySelectorAll('.ptab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('p'+id+'-'+dk).classList.add('on');
+  el.classList.add('on');window.scrollTo({top:0,behavior:'smooth'});
+}
+window.swP=swP;
+
+async function pickPlan(dk,plan){
+  const snap=await db.ref(`${dk}/picks`).once('value');
+  const picks=snap.val()||{};
+  if(picks[ME]===plan){delete picks[ME];toast('선택 취소했어');}
+  else{picks[ME]=plan;toast('✓ '+PLAN_NAMES_MAP[dk][plan]+' 선택!');}
+  await db.ref(`${dk}/picks`).set(picks);
+}
+window.pickPlan=pickPlan;
+
+function renderPicks(dk,picks){
+  if(!ME)return;
+  const other=ME==='hy'?'ky':'hy';
+  const ps={a:'A',b:'B',c:'C'};
+  const parts=[];
+  ['hy','ky'].forEach(u=>{if(picks[u])parts.push(EMOJIS[u]+' '+NAMES[u]+': Plan '+ps[picks[u]]);} );
+  const banner=document.getElementById('banner-'+dk);
+  if(!banner)return;
+  if(parts.length){banner.classList.add('show');document.getElementById('banner-txt-'+dk).textContent='선택 현황 — '+parts.join('  ·  ');}
+  else banner.classList.remove('show');
+  ['a','b','c','d'].forEach(p=>{
+    const btn=document.getElementById('pk-'+p+'-'+dk);
+    const po=document.getElementById('po-'+p+'-'+dk);
+    if(!btn)return;
+    if(picks[ME]===p){btn.classList.add('done');btn.innerHTML='<span>✓ 선택완료 (취소하려면 다시 눌러)</span>';}
+    else{btn.classList.remove('done');btn.innerHTML='<span>Plan '+p.toUpperCase()+' 좋아!</span>';}
+    if(po)po.textContent=picks[other]===p?EMOJIS[other]+' '+NAMES[other]+'도 이 코스 선택함!':'';
+  });
+}
+
+async function selAlt(btn){
+  const k=btn.dataset.k,v=btn.dataset.v;
+  const snap=await db.ref(`${DATE_KEY}/alts`).once('value');
+  const alts=snap.val()||{};
+  if(!alts[ME])alts[ME]={};
+  if(alts[ME][k]===v){delete alts[ME][k];toast('선택 취소했어');}
+  else{alts[ME][k]=v;toast('선택 저장!');}
+  await db.ref(`${DATE_KEY}/alts`).set(alts);
+}
+window.selAlt=selAlt;
+
+function renderAlts(dk,alts){
+  if(!ME)return;
+  const other=ME==='hy'?'ky':'hy';
+  const appEl=document.getElementById('app-'+dk);
+  if(!appEl)return;
+  appEl.querySelectorAll('.alt-btn').forEach(btn=>{
+    const k=btn.dataset.k,v=btn.dataset.v;
+    const myV=alts[ME]&&alts[ME][k],otherV=alts[other]&&alts[other][k];
+    const isMySel=myV===v,isOtherSel=otherV===v;
+    btn.classList.toggle('sel',isMySel);
+    btn.querySelectorAll('.sel-row').forEach(el=>el.remove());
+    if(isMySel||isOtherSel){
+      const row=document.createElement('div');row.className='sel-row';
+      if(isMySel){const pip=document.createElement('span');pip.className='who-pip '+ME;pip.textContent=EMOJIS[ME]+' 나 좋아';row.appendChild(pip);}
+      if(isOtherSel){const pip=document.createElement('span');pip.className='who-pip '+other;pip.textContent=EMOJIS[other]+' '+NAMES[other]+' 선택';row.appendChild(pip);}
+      btn.appendChild(row);
+    }
+  });
+}
+
+async function sendC(dk,plan){
+  var inp=document.getElementById('ci-'+plan+'-'+dk);
+  var text=inp.value.trim();if(!text)return;
+  await db.ref(dk+'/comments/'+plan).push({u:ME,t:text,ts:Date.now()});
+  inp.value='';inp.style.height='auto';
+}
+window.sendC=sendC;
+
+function renderComments(dk,plan,comments){
+  var list=document.getElementById('cl-'+plan+'-'+dk);
+  if(!list)return;
+  if(!comments.length){list.innerHTML='<div class="no-c">아직 코멘트가 없어요</div>';return;}
+  list.innerHTML=comments.map(function(c){
+    var d=new Date(c.ts),time=d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');
+    return '<div class="c-item '+c.u+'"><div class="c-meta"><span>'+EMOJIS[c.u]+'</span><span style="font-weight:400">'+NAMES[c.u]+'</span><span>'+time+'</span></div><div class="c-text">'+esc(c.t)+'</div></div>';
+  }).join('');
+}
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
+function autoH(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';}
+window.autoH=autoH;
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
+
+(function(){
+  const pwOk=localStorage.getItem('dp_pw_ok'),savedMe=localStorage.getItem('dp_me');
+  if(pwOk&&savedMe){
+    ME=savedMe;
+    document.getElementById('pw-gate').style.display='none';
+    document.getElementById('date-select').style.display='flex';
+    document.getElementById('ds-who-name').textContent=EMOJIS[ME]+' '+NAMES[ME]+' 안녕!';
+  }
+})();
+</script>
+</body>
+</html>
